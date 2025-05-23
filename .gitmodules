@@ -1,0 +1,3 @@
+[submodule "bonsol"]
+	path = bonsol
+	url = https://github.com/bonsol-collective/bonsol.git
