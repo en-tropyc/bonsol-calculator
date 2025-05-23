@@ -40,10 +40,10 @@ fn process_instruction(
         msg!("ZK Proof Output (raw bytes): {:?}", zk_output_data);
         // If you know the format of zk_output_data, you can try to parse/deserialize it here.
         // For example, if it's a UTF-8 string:
-        // match std::str::from_utf8(zk_output_data) {
-        //     Ok(s) => msg!("ZK Proof Output (as string): {}", s),
-        //     Err(_) => msg!("ZK Proof Output is not valid UTF-8 string."),
-        // }
+        match std::str::from_utf8(zk_output_data) {
+            Ok(s) => msg!("ZK Proof Output (as string): {}", s),
+            Err(_) => msg!("ZK Proof Output is not valid UTF-8 string."),
+        }
     }
 
     Ok(())
