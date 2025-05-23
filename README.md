@@ -60,4 +60,6 @@ This is a workspace project. Each component can be developed and tested independ
 
 ## License
 
-[Add your license information here] 
+This project is licensed under the Apache License 2.0 - see the [LICENSE](LICENSE) file for details.
+
+This project is compatible with the Apache 2.0 licenses used by Risc0 and Solana SDK components. 
