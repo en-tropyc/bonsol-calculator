@@ -1,4 +1,4 @@
-# ZK Calculator Project
+# Bonsol Calculator
 
 A Zero-Knowledge proof calculator built using Risc0 and Solana integration.
 
