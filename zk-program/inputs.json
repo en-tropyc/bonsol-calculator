@@ -1,0 +1,16 @@
+{
+  "inputs": [
+    {
+      "inputType": "PublicData",
+      "data": "2"
+    },
+    {
+      "inputType": "PublicData",
+      "data": "12"
+    },
+    {
+      "inputType": "PublicData",
+      "data": "-13"
+    }
+  ]
+} 

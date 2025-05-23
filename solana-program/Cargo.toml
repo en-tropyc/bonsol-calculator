@@ -1,0 +1,11 @@
+[package]
+name = "bonsol-callback-program"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+solana-program = "1.18.11"
+borsh = "0.10.3" # For serializing/deserializing instruction data
+
+[lib]
+crate-type = ["cdylib", "lib"] 

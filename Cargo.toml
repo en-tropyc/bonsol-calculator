@@ -1,0 +1,15 @@
+[workspace]
+members = [
+    "zk-program",
+    "solana-program", 
+    "client"
+]
+resolver = "2"
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+authors = ["Your Name <your.email@example.com>"]
+
+[workspace.metadata]
+description = "ZK Calculator project with Risc0 and Solana integration" 

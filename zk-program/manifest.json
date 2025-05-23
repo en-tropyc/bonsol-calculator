@@ -1,0 +1,10 @@
+{
+  "name": "zk_calculator",
+  "binaryPath": "./target/riscv-guest/riscv32im-risc0-zkvm-elf/docker/zk_calculator/zk_calculator",
+  "imageId": "5881e972d41fe651c2989c65699528da8b1ed68ab7057350a686b8a64a00fc91",
+  "inputOrder": [
+    "Public"
+  ],
+  "signature": "5yFXbYd5dUtQWr4udADqmAfmH4Bf3cCi9Y16bVzEzSwWYdBHvdh2ZoxPkidbtkV2D5dnhUYvgkXoVQvVBVmF11jh",
+  "size": 142096
+}
