@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { BonsolApiClient, CalculationRequest, CalculationResponse, ExecutionStatus } from './bonsol-api-client.ts';
 
 // Styles for the calculator
@@ -114,13 +114,7 @@ export const BonsolCalculatorApp: React.FC = () => {
   // API client
   const [apiClient] = useState(() => new BonsolApiClient());
 
-  // Check API health on mount
-  useEffect(() => {
-    checkApiHealth();
-    loadExecutions();
-  }, []);
-
-  const checkApiHealth = async () => {
+  const checkApiHealth = useCallback(async () => {
     try {
       const health = await apiClient.checkHealth();
       setApiHealth(`✅ API ${health.status} (uptime: ${Math.round(health.uptime)}s)`);
@@ -128,16 +122,22 @@ export const BonsolCalculatorApp: React.FC = () => {
       setApiHealth('❌ API not available');
       setStatus('Error: Calculator API is not running. Please start the API server.');
     }
-  };
+  }, [apiClient]);
 
-  const loadExecutions = async () => {
+  const loadExecutions = useCallback(async () => {
     try {
       const data = await apiClient.getAllExecutions();
       setExecutions(data.executions);
     } catch (error) {
       console.warn('Could not load execution history:', error);
     }
-  };
+  }, [apiClient]);
+
+  // Check API health on mount
+  useEffect(() => {
+    checkApiHealth();
+    loadExecutions();
+  }, [checkApiHealth, loadExecutions]);
 
   const performCalculation = async () => {
     setIsCalculating(true);

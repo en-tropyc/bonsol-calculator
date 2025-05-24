@@ -5,15 +5,19 @@ use solana_program::{
     msg,
     pubkey::Pubkey,
     program_error::ProgramError,
-    program::invoke_signed,
+    program::invoke,
     system_instruction,
     sysvar::{rent::Rent, Sysvar},
     clock::Clock,
 };
 use borsh::{BorshDeserialize, BorshSerialize};
+use bonsol_interface::instructions::{execute_v1, CallbackConfig, ExecutionConfig, InputRef};
 
 // Program ID - you'll need to deploy this and update the ID
 solana_program::declare_id!("2zBRw2sEXvjskx7w1w9hqdFEMZWy7KipQ6jKPfwjpnL6");
+
+// Calculator ZK program image ID
+const CALCULATOR_IMAGE_ID: &str = "5881e972d41fe651c2989c65699528da8b1ed68ab7057350a686b8a64a00fc91";
 
 // Calculator operations
 const OP_ADD: i64 = 0;
@@ -45,7 +49,7 @@ pub enum CalculatorInstruction {
     /// Initialize calculator state
     Initialize,
     
-    /// Submit a calculation (for now, calculates immediately)
+    /// Submit a calculation request to Bonsol ZK network
     SubmitCalculation {
         execution_id: String,
         operation: i64,
@@ -55,6 +59,12 @@ pub enum CalculatorInstruction {
     
     /// Get calculation history (read-only)
     GetHistory,
+    
+    /// Callback instruction from Bonsol when ZK computation completes
+    Callback {
+        execution_id: String,
+        result: i64,
+    },
 }
 
 impl CalculatorState {
@@ -86,6 +96,7 @@ fn process_instruction(
             operand_b,
         ),
         CalculatorInstruction::GetHistory => get_history(accounts),
+        CalculatorInstruction::Callback { execution_id, result } => callback(accounts, execution_id, result),
     }
 }
 
@@ -104,7 +115,7 @@ fn initialize(program_id: &Pubkey, accounts: &[AccountInfo]) -> ProgramResult {
     let space = CalculatorState::LEN;
     let lamports = rent.minimum_balance(space);
 
-    invoke_signed(
+    invoke(
         &system_instruction::create_account(
             payer.key,
             calculator_state_account.key,
@@ -113,7 +124,6 @@ fn initialize(program_id: &Pubkey, accounts: &[AccountInfo]) -> ProgramResult {
             program_id,
         ),
         &[payer.clone(), calculator_state_account.clone(), system_program.clone()],
-        &[],
     )?;
 
     // Initialize the state
@@ -162,29 +172,77 @@ fn submit_calculation(
         return Err(ProgramError::IncorrectProgramId);
     }
 
-    // Calculate result immediately (no ZK for now - just testing)
-    let result = match operation {
-        OP_ADD => operand_a + operand_b,
-        OP_SUBTRACT => operand_a - operand_b,
-        OP_MULTIPLY => operand_a * operand_b,
-        OP_DIVIDE => {
-            if operand_b == 0 {
-                return Err(ProgramError::InvalidInstructionData);
-            }
-            operand_a / operand_b
-        }
-        _ => return Err(ProgramError::InvalidInstructionData),
+    // Create Bonsol execution request instead of calculating immediately
+    msg!("Creating Bonsol execution request for {} {} {}", operand_a, match operation {
+        OP_ADD => "+",
+        OP_SUBTRACT => "-", 
+        OP_MULTIPLY => "*",
+        OP_DIVIDE => "/",
+        _ => "?",
+    }, operand_b);
+
+    // Prepare inputs for ZK program (matching the format from client)
+    let operation_bytes = operation.to_le_bytes();
+    let operand_a_bytes = operand_a.to_le_bytes();
+    let operand_b_bytes = operand_b.to_le_bytes();
+
+    // Combine all three 8-byte values into a single 24-byte input
+    let mut combined_input = Vec::with_capacity(24);
+    combined_input.extend_from_slice(&operation_bytes);
+    combined_input.extend_from_slice(&operand_a_bytes);
+    combined_input.extend_from_slice(&operand_b_bytes);
+
+    let inputs = vec![InputRef::public(&combined_input)];
+
+    // Get current slot for expiration
+    let current_slot = Clock::get()?.slot;
+    let expiration = current_slot + 100; // 100 slots expiration
+
+    // Create callback config to receive results
+    let callback_config = Some(CallbackConfig {
+        program_id: *_program_id,
+        instruction_prefix: vec![2], // Callback instruction variant
+        extra_accounts: vec![
+            solana_program::instruction::AccountMeta::new(*calculator_state_account.key, false),
+        ],
+    });
+
+    // Create the Bonsol execution instruction
+    let execution_config = ExecutionConfig {
+        verify_input_hash: false,
+        input_hash: None,
+        forward_output: true,
     };
 
-    // Create calculation record
+    let bonsol_instruction = execute_v1(
+        payer.key,
+        payer.key,
+        CALCULATOR_IMAGE_ID,
+        &execution_id,
+        inputs,
+        1000, // tip in lamports
+        expiration,
+        execution_config,
+        callback_config,
+        None, // default prover version
+    ).map_err(|_| ProgramError::InvalidInstructionData)?;
+
+    msg!("Created Bonsol instruction with {} accounts", bonsol_instruction.accounts.len());
+    msg!("Bonsol instruction program ID: {}", bonsol_instruction.program_id);
+
+    // TODO: Invoke the Bonsol instruction - temporarily disabled for testing
+    // invoke(&bonsol_instruction, accounts)?;
+    msg!("Bonsol execution request created (invoke temporarily disabled for testing)");
+
+    // Create calculation record (marked as pending)
     let calculation = CalculationRecord {
         execution_id: execution_id.clone(),
         operation,
         operand_a,
         operand_b,
-        result: Some(result),
+        result: None, // No result yet - waiting for ZK computation
         timestamp: Clock::get()?.unix_timestamp,
-        is_complete: true,
+        is_complete: false, // Still pending ZK proof
     };
 
     // Update state
@@ -203,8 +261,9 @@ fn submit_calculation(
         _ => "?",
     };
 
-    msg!("Calculated: {} {} {} = {}", operand_a, op_symbol, operand_b, result);
+    msg!("Submitted ZK execution request: {} {} {}", operand_a, op_symbol, operand_b);
     msg!("Execution ID: {}", execution_id);
+    msg!("Awaiting ZK proof computation...");
 
     Ok(())
 }
@@ -236,6 +295,49 @@ fn get_history(accounts: &[AccountInfo]) -> ProgramResult {
         }
     }
 
+    Ok(())
+}
+
+fn callback(accounts: &[AccountInfo], execution_id: String, result: i64) -> ProgramResult {
+    msg!("Callback received for execution ID: {}", execution_id);
+    msg!("ZK computation result: {}", result);
+    
+    let account_info_iter = &mut accounts.iter();
+    let calculator_state_account = next_account_info(account_info_iter)?;
+    
+    // Load calculator state
+    let data = calculator_state_account.try_borrow_data()?;
+    let mut calculator_state = CalculatorState::try_from_slice(&data)?;
+    drop(data);
+    
+    // Update the last calculation with the result
+    if let Some(ref mut calc) = calculator_state.last_calculation {
+        if calc.execution_id == execution_id {
+            calc.result = Some(result);
+            calc.is_complete = true;
+            
+            let op_symbol = match calc.operation {
+                OP_ADD => "+",
+                OP_SUBTRACT => "-",
+                OP_MULTIPLY => "*", 
+                OP_DIVIDE => "/",
+                _ => "?",
+            };
+            
+            msg!("✅ ZK computation completed: {} {} {} = {}", 
+                 calc.operand_a, op_symbol, calc.operand_b, result);
+                 
+            // Save updated state
+            let mut data = calculator_state_account.try_borrow_mut_data()?;
+            let serialized = calculator_state.try_to_vec()?;
+            data[..serialized.len()].copy_from_slice(&serialized);
+        } else {
+            msg!("Warning: Execution ID mismatch in callback");
+        }
+    } else {
+        msg!("Warning: No pending calculation found for callback");
+    }
+    
     Ok(())
 }
 
