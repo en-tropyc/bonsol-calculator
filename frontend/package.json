@@ -1,40 +1,52 @@
 {
-  "name": "bonsol-calculator-frontend",
-  "version": "1.0.0",
-  "description": "Zero-Knowledge Calculator Frontend using Bonsol and Solana",
-  "main": "index.js",
-  "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint",
-    "type-check": "tsc --noEmit"
-  },
+  "name": "calculator-frontend",
+  "version": "0.1.0",
+  "private": true,
   "dependencies": {
-    "@solana/web3.js": "^1.87.6",
-    "@solana/wallet-adapter-base": "^0.9.23",
-    "@solana/wallet-adapter-react": "^0.15.35",
-    "@solana/wallet-adapter-react-ui": "^0.9.35",
-    "@solana/wallet-adapter-wallets": "^0.19.32",
+    "@solana/web3.js": "^1.95.2",
+    "@types/node": "^16.18.105",
+    "@types/react": "^18.3.5",
+    "@types/react-dom": "^18.3.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-scripts": "5.0.1",
+    "typescript": "^4.9.5",
+    "web-vitals": "^2.1.4",
     "borsh": "^0.7.0",
-    "next": "14.0.0",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "flatbuffers": "23.5.26"
   },
-  "devDependencies": {
-    "@types/node": "^20.8.0",
-    "@types/react": "^18.2.25",
-    "@types/react-dom": "^18.2.11",
-    "typescript": "^5.2.2"
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
   },
-  "keywords": [
-    "solana",
-    "bonsol",
-    "zero-knowledge",
-    "calculator",
-    "blockchain",
-    "zk-proofs"
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslistrc": [
+    ">0.2%",
+    "not dead",
+    "not op_mini all"
   ],
-  "author": "Your Name",
-  "license": "MIT"
-} 
+  "devDependencies": {
+    "@testing-library/jest-dom": "^5.17.0",
+    "@testing-library/react": "^13.4.0",
+    "@testing-library/user-event": "^13.5.0"
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}
