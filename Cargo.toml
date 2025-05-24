@@ -1,7 +1,6 @@
 [workspace]
 members = [
-    "zk-program",
-    "solana-program"
+    "zk-program"
 ]
 resolver = "2"
 
