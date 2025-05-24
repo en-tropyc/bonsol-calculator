@@ -27,18 +27,47 @@ Transform your Bonsol calculator from a command-line tool into a full **producti
                         └─────────────────┘    └─────────────────┘    └─────────────────┘
 ```
 
-## 🚀 Quick Deploy
+## 🚀 Quick Start
 
+### Prerequisites
+- Node.js (v16 or higher)
+- npm
+
+### Running the Application
+
+**Step 1: Start the API Server**
 ```bash
-# 1. Deploy everything with one command
-./deploy.sh
-
-# 2. Start the web app
-cd calculator-frontend
-npm run dev
-
-# 3. Open http://localhost:3000
+cd calculator-api
+npm install
+npm start
 ```
+The API server will start on `http://localhost:3001`
+
+**Step 2: Start the Frontend (in a new terminal)**
+```bash
+cd frontend
+npm install
+npm start
+```
+The React app will start on `http://localhost:3000`
+
+**Step 3: Use the Calculator**
+1. Open your browser to `http://localhost:3000`
+2. Enter two numbers and select an operation
+3. Click "Calculate with ZK" 
+4. Wait ~15-30 seconds for the zero-knowledge proof computation
+5. See the verified result!
+
+### Development Scripts
+
+**Frontend:**
+- `npm start` - Start development server (port 3000)
+- `npm run build` - Build for production
+- `npm test` - Run tests
+
+**API Server:**
+- `npm start` - Start production server (port 3001)
+- `npm run dev` - Start with nodemon for development
 
 ## 📁 What You Get
 
@@ -261,7 +290,7 @@ solana program show <PROGRAM_ID> --url mainnet-beta
 ## 📚 Full Documentation
 
 - 📖 **[Complete Deployment Guide](DEPLOYMENT_GUIDE.md)** - Step-by-step instructions
-- 🏃 **[Quick Start](#quick-deploy)** - Deploy in 5 minutes  
+- 🏃 **[Quick Start](#quick-start)** - Deploy in 5 minutes  
 - 🛠️ **[Development Guide](client/README.md)** - Build and customize
 - 🔧 **[API Reference](frontend/calculator-client.ts)** - TypeScript client docs
 
