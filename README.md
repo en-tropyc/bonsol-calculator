@@ -10,7 +10,7 @@ React Frontend ──→ Express API ──→ Bonsol Network ──→ ZK Compu
   localhost:3000  localhost:3001   ZK Execution    Verified Result
 ```
 
-## Quick Start
+## Quick Start (local environment)
 
 **1. Start the API server:**
 ```bash
